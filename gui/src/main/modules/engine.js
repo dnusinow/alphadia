@@ -174,6 +174,29 @@ function hasAlphaDIA(envName, condaPath){
         }
     })
 }
+
+function hasMono(envName, condaPath){
+    return new Promise((resolve, reject) => {
+        try {
+            execPATH(`conda run -n ${envName} alphadia --mono` , condaPath, (err, stdout, stderr) => {
+                if (err) {console.log(err); reject("Mono not found within WSL"); return;}
+                mono_staus = JSON.parse(stdout)
+                if (mono_staus["installed"] == true){
+                    resolve("available")
+                } else {
+                    reject(mono_status["error"])
+                }
+            }
+        )} catch (err) {
+            console.log(err)
+            reject(err)
+        }
+    })
+}
+        
+
+
+
 class CMDExecutionEngine extends BaseExecutionEngine {
 
     name = "CMDExecutionEngine"
@@ -210,6 +233,10 @@ class CMDExecutionEngine extends BaseExecutionEngine {
                 return hasAlphaDIA(this.config.envName, this.discoveredCondaPath)
             }).then((alphadia_version) => {
                 this.versions.push({"name": "alphadia", "version": alphadia_version})
+            }).then(() => {
+                return hasMono(this.config.envName, this.discoveredCondaPath)
+            }).then((mono_status) => {
+                this.versions.push({"name": "mono", "version": mono_status})
             }).then(() => {
                 this.available = true
             }).catch((err) => {
@@ -312,16 +339,27 @@ function hasBinary(binaryPath){
 
 function hasAlphaDIABundled(binaryPath){
     return new Promise((resolve, reject) => {
-        try {
-            exec(binaryPath + " --version", (err, stdout, stderr) => {
-                if (err) {console.log(err); reject("hasAlphaDIABundled: Binary " + binaryPath + " is not alphaDIA"); return;}
-                console.log(stdout)
-                resolve(stdout.trim())
-            })
-        } catch (err) {
-            console.log(err)
-            reject(err)
-        }
+        exec(binaryPath + " --version", (err, stdout, stderr) => {
+            if (err) {console.log(err); reject("hasAlphaDIABundled: Binary " + binaryPath + " is not alphaDIA"); return;}
+            console.log(stdout)
+            resolve(stdout.trim())
+        })
+    })
+}
+
+function hasMonoBundled(binaryPath){
+    return new Promise((resolve, reject) => {
+        exec(binaryPath + " --mono", (err, stdout, stderr) => {
+            if (err) {console.log(err); reject("hasMonoBundled: Binary " + binaryPath + " failed to report Mono status"); return;}
+            mono_staus = JSON.parse(stdout)
+            
+            if (mono_staus["installed"] == true){
+                resolve("available")
+            } else {
+                reject(mono_status["error"])
+            }
+        })
+
     })
 }
         
@@ -354,6 +392,10 @@ class BundledExecutionEngine extends BaseExecutionEngine {
                 return hasAlphaDIABundled(this.config.binaryPath)
             }).then((alphadia_version) => {
                 this.versions.push({"name": "alphadia", "version": alphadia_version})
+            }).then(() => {
+                return hasMonoBundled(this.config.binaryPath)
+            }).then((mono_status) => {
+                this.versions.push({"name": "mono", "version": mono_status})
                 this.available = true
             }).catch((err) => {
                 this.available = false
@@ -493,6 +535,20 @@ function hasWSLAlphaDIA(envName){
     })
 }
 
+function hasWSLMono(envName){
+    return new Promise((resolve, reject) => {
+        exec("wsl bash -ic \"conda activate " + envName + " && alphadia --mono\"", (err, stdout, stderr) => {
+            if (err) {console.log(err); reject("Mono not found within WSL"); return;}
+            mono_staus = JSON.parse(stdout)
+            if (mono_staus["installed"] == true){
+                resolve("available")
+            } else {
+                reject(mono_status["error"])
+            }
+        })
+    })
+}
+
 class WSLExecutionEngine extends BaseExecutionEngine {
 
     name = "WSLExecutionEngine"
@@ -526,6 +582,10 @@ class WSLExecutionEngine extends BaseExecutionEngine {
                 return hasWSLAlphaDIA(this.config.envName)
             }).then((alphadia_version) => {
                 this.versions.push({"name": "alphadia", "version": alphadia_version})
+            }).then(() => {
+                return hasWSLMono(this.config.envName)
+            }).then((mono_status) => {
+                this.versions.push({"name": "mono", "version": mono_status})
             }).then(() => {
                 this.available = true
             }).catch((err) => {

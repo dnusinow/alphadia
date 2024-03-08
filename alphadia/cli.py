@@ -114,6 +114,12 @@ parser.add_argument(
     default="{}",
 )
 
+parser.add_argument(
+    "--mono",
+    action="store_true",
+    help="Check if Mono is available.",
+)
+
 
 def parse_config(args: argparse.Namespace) -> dict:
     """Parse config file and config update JSON string.
@@ -297,6 +303,20 @@ def parse_fasta(args: argparse.Namespace, config: dict) -> list:
 
     return fasta_path_list
 
+def print_mono_status():
+    """Check if the Mono runtime is installed and print the result to stdout as JSON.
+    """
+    result = {"installed": False, "error": ""}
+    try:
+        import clr
+        result["installed"] = True
+
+    except ImportError as e:
+        result["error"] = e
+
+    #print result to json
+    print(json.dumps(result))
+
 
 def run(*args, **kwargs):
     # parse command line arguments
@@ -309,6 +329,10 @@ def run(*args, **kwargs):
 
     if args.version:
         print(f"{alphadia.__version__}")
+        return
+    
+    if args.mono:
+        print_mono_status()
         return
 
     config = parse_config(args)
