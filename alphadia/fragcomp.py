@@ -4,11 +4,13 @@ import logging
 import numpy as np
 import pandas as pd
 
+from alphadia.pjit import pjit
+
 logger = logging.getLogger(__name__)
 import numba as nb
 
 
-@nb.njit
+@nb.njit(cache=True)
 def get_fragment_overlap(
     frag_mz_1: np.ndarray,
     frag_mz_2: np.ndarray,
@@ -42,7 +44,7 @@ def get_fragment_overlap(
     return frag_overlap
 
 
-@timsutils.pjit
+@pjit
 def compete_for_fragments(
     thread_idx: int,
     precursor_start_idxs: np.ndarray,

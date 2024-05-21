@@ -9,7 +9,7 @@ import numpy as np
 import numba as nb
 
 
-@nb.njit(parallel=False, fastmath=True)
+@nb.njit(parallel=False, fastmath=True, cache=True)
 def search_sorted_left(slice, value):
     left = 0
     right = len(slice)
@@ -23,7 +23,7 @@ def search_sorted_left(slice, value):
     return left
 
 
-@nb.njit
+@nb.njit(cache=True)
 def ceil_to_base_two(x):
     # borrowed from Bit Twiddling Hacks
     # https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
@@ -38,7 +38,7 @@ def ceil_to_base_two(x):
     return x
 
 
-@nb.njit
+@nb.njit(cache=True)
 def wrap0(
     value,
     limit,
@@ -49,7 +49,7 @@ def wrap0(
         return min(value, limit)
 
 
-@nb.njit
+@nb.njit(cache=True)
 def wrap1(
     values,
     limit,
@@ -59,7 +59,7 @@ def wrap1(
     return values
 
 
-@nb.njit
+@nb.njit(cache=True)
 def get_mean0(dense, scan, cycle):
     """create a fixed window around the peak and extract the mean value"""
     # window size around peak
@@ -73,7 +73,7 @@ def get_mean0(dense, scan, cycle):
     return np.mean(mz_window)
 
 
-@nb.njit
+@nb.njit(cache=True)
 def get_mean_sparse0(dense, scan, cycle, threshold):
     """create a fixed window around the peak and extract the mean value"""
     # window size around peak
@@ -95,7 +95,7 @@ def get_mean_sparse0(dense, scan, cycle, threshold):
     return values
 
 
-@nb.njit
+@nb.njit(cache=True)
 def symetric_limits_1d(
     array_1d,
     center,
@@ -170,7 +170,7 @@ def symetric_limits_1d(
     )
 
 
-@nb.njit
+@nb.njit(cache=True)
 def symetric_limits_2d(
     a,
     scan_center,
@@ -209,7 +209,7 @@ def symetric_limits_2d(
     return mobility_limits, dia_cycle_limits
 
 
-@nb.njit(inline="always")
+@nb.njit(inline="always", cache=True)
 def save_corrcoeff(x: np.array, y: np.array):
     """Save way to calculate the correlation coefficient between two one-dimensional arrays.
 
@@ -244,7 +244,7 @@ def save_corrcoeff(x: np.array, y: np.array):
     return numerator / (denominator + 1e-12)
 
 
-@nb.njit()
+@nb.njit(cache=True)
 def fragment_correlation(
     fragments_profile,
 ):
@@ -305,7 +305,7 @@ def fragment_correlation(
     return output
 
 
-@nb.njit()
+@nb.njit(cache=True)
 def fragment_correlation_different(x: np.ndarray, y: np.ndarray):
     """Calculates a save correlation matrix for a given fragment profile.
 
@@ -381,6 +381,6 @@ def fragment_correlation_different(x: np.ndarray, y: np.ndarray):
     return output
 
 
-@nb.njit(inline="always")
+@nb.njit(inline="always", cache=True)
 def amean(array, axis):
     return np.sum(array, axis=axis) / array.shape[axis]

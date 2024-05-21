@@ -14,7 +14,7 @@ import numpy as np
 import numba as nb
 
 
-@nb.njit()
+@nb.njit(cache=True)
 def multivariate_normal(x: np.ndarray, mu: np.ndarray, sigma: np.ndarray):
     """multivariate normal distribution, probability density function
 

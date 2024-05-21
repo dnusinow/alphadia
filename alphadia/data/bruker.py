@@ -3,6 +3,8 @@ import math
 import os
 import logging
 
+from alphadia.pjit import pjit
+
 logger = logging.getLogger()
 
 # alphadia imports
@@ -655,9 +657,7 @@ class TimsTOFTransposeJIT(object):
                                 relative_precursor_index[i],
                                 relative_scan,
                                 relative_precursor,
-                            ] = (
-                                accumulated_intensity + new_intensity
-                            )
+                            ] = accumulated_intensity + new_intensity
                             dense_output[
                                 1,
                                 j,
@@ -815,7 +815,7 @@ class TimsTOFTransposeJIT(object):
         )
 
 
-@alphatims.utils.pjit()
+@pjit
 def transpose_chunk(
     chunk_idx,
     chunks,
@@ -845,7 +845,7 @@ def transpose_chunk(
                 tof_indcount[tof_index] += 1
 
 
-@nb.njit
+@nb.njit(cache=True)
 def build_chunks(number_of_elements, num_chunks):
     # Calculate the number of chunks needed
     chunk_size = (number_of_elements + num_chunks - 1) // num_chunks
@@ -861,7 +861,7 @@ def build_chunks(number_of_elements, num_chunks):
     return np.array(chunks)
 
 
-@nb.njit
+@nb.njit(cache=True)
 def transpose(tof_indices, push_indptr, values):
     """
     The default alphatims data format consists of a sparse matrix where pushes are the rows, tof indices (discrete mz values) the columns and intensities the values.

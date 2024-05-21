@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 
-@nb.njit
+@nb.njit(cache=True)
 def wrap_assemble_isotope_mz(mz, charge, intensities):
     return assemble_isotope_mz(mz, charge, intensities)
 
