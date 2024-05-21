@@ -23,7 +23,7 @@ from peptdeep.model.model_interface import LR_SchedulerInterface, CallbackHandle
 from peptdeep.model.ms2 import normalize_fragment_intensities
 from peptdeep.model.charge import ChargeModelForModAASeq
 import logging
-
+from alphadia.workflow import reporting
 logger = logging.getLogger()
 
 settings = {
@@ -449,7 +449,6 @@ class FinetuneManager(ModelManager):
             precursor_df_to_align_with=reordered_test_psm_df,
             prev_precursor_df=test_psm_df,
             frags_to_be_reordered=test_intensity_df,
-            prev_frag_df=test_intensity_df,
         )
 
         # Create a metric manager
