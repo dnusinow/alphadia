@@ -12,6 +12,9 @@ import { Box, CssBaseline } from '@mui/material';
 import { MenuDrawer, UtilMonitor, ExecutionEngine } from './components';
 import { Home, Files, Method, Output, Run } from './pages';
 
+import { useClippy, ClippyProvider } from '@react95/clippy';
+
+
 
 
 // Define the styles for the layout
@@ -99,11 +102,14 @@ const App = () => {
             onSetRunningState={handleSetRunningState}
             profile={profile}
             />
+
         <ContentContainer>
+        <ClippyProvider>
             <Box sx={{marginBottom:1, display: "flex", minHeight:"40px"}}>
                 <ExecutionEngine environment={profile.environment} sx={{ marginRight: "auto"}}/>
                 <UtilMonitor sx={{ marginLeft: "auto"}}/>
             </Box>
+
             <Routes>
                 <Route path="/" element={ <Home /> } />
                 <Route path="/files" element={ <Files/> } />
@@ -111,7 +117,9 @@ const App = () => {
                 <Route path="/output" element={ <Output/> } />
                 <Route path="/run" element={ <Run/> } />
             </Routes>
+        </ClippyProvider>
         </ContentContainer>
+
         </AppLayout>
     </ThemeProvider>
   );

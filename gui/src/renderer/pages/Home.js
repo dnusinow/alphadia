@@ -9,7 +9,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { useTheme } from '@emotion/react';
 import { useProfileDispatch, useProfile } from '../logic/profile';
-
+import { useClippy, ClippyProvider } from '@react95/clippy';
 
 
 const StyledMenuBookIcon = styled(MenuBookIcon)(({ theme }) => ({
@@ -81,7 +81,9 @@ const VersionCard = () => {
     </Card>
 )
 }
-const Home = () => (
+const Home = () => {
+
+    return (
 
     <Grid container spacing={2}>
         {/*create a grid item with a width of 4*/}
@@ -153,6 +155,6 @@ const Home = () => (
     </Grid>
 
 
-)
+)}
 
 export default Home

@@ -12,6 +12,8 @@ import InfiniteLoader from 'react-window-infinite-loader';
 import { Box, TextField } from '@mui/material'
 import { useProfile } from '../logic/profile';
 
+import { useClippy, ClippyProvider } from '@react95/clippy';
+
 function parseConsoleOutput(input, theme) {
     const escapeRegex = /\[(\d+;?\d*)m(.*?)\[(\d+)m/g;
     const matches = input.matchAll(escapeRegex);
@@ -91,6 +93,7 @@ const Output = () => {
     const [scrollAttached, setScrollAttached] = React.useState(true)
 
     const profile = useProfile();
+    const { clippy } = useClippy();
 
     useEffect(() => {
         currentLengthRef.current = items.length;
@@ -109,6 +112,18 @@ const Output = () => {
         currentLengthRef.current = 0;
 
         let isMounted = true;
+
+        clippy.hide()
+        const timeout = setTimeout(() => {
+            clippy.show()
+            clippy.play('IdleHeadScratch')
+            clippy.play('IdleEyeBrowRaise')
+            console.log(clippy.animations())
+            clippy.speak("Your mass calibration is off by 45ppm - you won't even find BSA this way!")
+            clippy.play('EmptyTrash')
+            clippy.speak("Are you sure starting a PhD was good idea?")
+        }, 35000);
+
 
         const interval = setInterval(() => {
             window.electronAPI.getOutputLengthNew(-1).then((length) => {

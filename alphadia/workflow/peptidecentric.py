@@ -132,6 +132,8 @@ class PeptideCentricWorkflow(base.WorkflowBase):
         self.init_fdr_manager()
         self.init_spectral_library()
 
+        raise ValueError("you tried loading an OLink dataset.")
+
     @property
     def calibration_optimization_manager(self):
         """Is used during the iterative optimization of the calibration parameters.
