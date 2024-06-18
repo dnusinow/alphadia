@@ -27,7 +27,17 @@ class TargetDecoyFDR:
     ):
         """Target Decoy FDR estimation using a classifier.
 
-        This class supports target decoy competition as well as fragment competition.
+        Target decoy FDR operates in three steps:
+        1.  Training of a target decoy classifier of choice
+            Accessible in `TargetDecoyFDR.fit()`
+
+        2. Predicting all decoy probabilities using this classifier
+            Accessible in `TargetDecoyFDR.predict()`
+
+        3. Calculating q-values and posterior error probabilities (PEP)
+            Accessible in `TargetDecoyFDR.qval()`
+
+        All three steps can be used independently as well as in single pipeline: `TargetDecoyFDR.fit_predict_qval()`.
 
         Parameters
         ----------
@@ -50,7 +60,7 @@ class TargetDecoyFDR:
         self._decoy_column = decoy_column
         self._competition_columns = competition_columns
 
-    def fit_classifier(self, psm_df: pd.DataFrame):
+    def fit(self, psm_df: pd.DataFrame, plot=True):
         """Fit the classifier on the PSMs.
 
         Parameters
@@ -75,10 +85,11 @@ class TargetDecoyFDR:
         y_test_proba = self._classifier.predict_proba(X_test)[:, 1]
         y_train_proba = self._classifier.predict_proba(X_train)[:, 1]
 
-        _plot_score_distribution(y_train, y_train_proba, y_test, y_test_proba)
-        _plot_roc_curve(y_train, y_train_proba, y_test, y_test_proba)
+        if plot:
+            _plot_score_distribution(y_train, y_train_proba, y_test, y_test_proba)
+            _plot_roc_curve(y_train, y_train_proba, y_test, y_test_proba)
 
-    def predict_classifier(self, psm_df: pd.DataFrame):
+    def predict(self, psm_df: pd.DataFrame):
         """Predict the decoy probability for the PSMs.
 
         Parameters
@@ -99,39 +110,30 @@ class TargetDecoyFDR:
         y_proba_full = np.ones(len(psm_df))
         y_proba = self._classifier.predict_proba(X)[:, 1]
         y_proba_full[~is_na_row] = y_proba
-        return y_proba_full
+        psm_df["decoy_proba"] = y_proba_full
+        return psm_df
 
-    def predict_qval(self, psm_df, fragments_df=None, dia_cycle=None):
-        psm_df["decoy_proba"] = self.predict_classifier(psm_df)
+    def qval(self, psm_df, plot=True):
         # normalize to a 1:1 target decoy proportion
-        r_target_decoy = (psm_df["decoy"] == 0).sum() / (psm_df["decoy"] == 1).sum()
-
-        # normalize q-values based on proportion before competition
-        if dia_cycle is not None and fragments_df is not None:
-            psm_df = _get_q_values(
-                psm_df,
-                score_column="decoy_proba",
-                decoy_column="decoy",
-                r_target_decoy=r_target_decoy,
-            )
-            fragment_competition = FragmentCompetition()
-            psm_df = fragment_competition(
-                psm_df[psm_df["qval"] < 0.10], fragments_df, dia_cycle
-            )
+        r_target_decoy = (psm_df[self._decoy_column] == 0).sum() / (
+            psm_df[self._decoy_column] == 1
+        ).sum()
 
         psm_df = _keep_best(psm_df, group_columns=self._competition_columns)
         psm_df = _get_q_values(
-            psm_df, "decoy_proba", "decoy", r_target_decoy=r_target_decoy
+            psm_df, "decoy_proba", self._decoy_column, r_target_decoy=r_target_decoy
         )
 
         # calulate PEP
         psm_df["pep"] = _get_pep(
-            psm_df, score_column="decoy_proba", decoy_column="decoy"
+            psm_df, score_column="decoy_proba", decoy_column=self._decoy_column
         )
 
-        _plot_fdr_curve(psm_df["qval"])
+        if plot:
+            _plot_fdr_curve(psm_df["qval"])
         return psm_df
 
     def fit_predict_qval(self, psm_df, fragments_df=None, cycle=None):
-        self.fit_classifier(psm_df)
-        return self.predict_qval(psm_df, fragments_df, cycle)
+        self.fit(psm_df)
+        psm_df = self.predict(psm_df)
+        return self.qval(psm_df)
