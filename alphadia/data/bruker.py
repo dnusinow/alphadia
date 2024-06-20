@@ -19,6 +19,7 @@ from numba.experimental import jitclass
 from alphadia import utils
 from alphadia.data.stats import log_stats
 from alphadia.pjit import pjit
+
 logger = logging.getLogger()
 
 
